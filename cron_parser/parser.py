@@ -17,6 +17,9 @@ class Printable:
                 title += " "
         return title
 
+    def get_contents(self):
+        return self.contents
+
     def __str__(self):
         return self.get_title() + self.contents
 
@@ -42,6 +45,8 @@ class TimePeriod(Printable):
             self.add_predefined_value(int(expr))
 
     def add_step_values(self, step):
+        if step <= 0:
+            raise ValueError(f"Invalid step value: {step}. Minimum possible value is: 1")
         current_step = self.lower_bound
         num_intervals = (self.upper_bound + 1) // step
         for _ in range(num_intervals):
@@ -49,6 +54,10 @@ class TimePeriod(Printable):
             current_step += step
 
     def add_range_values(self, range_from, range_to):
+        if range_from < self.lower_bound:
+            raise ValueError(f"Invalid lower bound value: {range_from}. Minimum possible value is: {self.lower_bound}")
+        if range_to > self.upper_bound:
+            raise ValueError(f"Invalid upper bound value: {range_to}. Maximum possible value is: {self.upper_bound}")
         for value in range(range_from, range_to + 1):
             self.times.add(value)
 
@@ -57,8 +66,14 @@ class TimePeriod(Printable):
             self.times.add(value)
 
     def add_predefined_value(self, value):
+        if value < self.lower_bound or value > self.upper_bound:
+            raise ValueError(f"Value out of range: {value}. Allowed range: [{self.lower_bound}, {self.upper_bound}]")
         self.times.add(value)
-
+    
+    def get_contents(self):
+        sorted_times = list(self.times)
+        sorted_times.sort()
+        return sorted_times
 
     def __str__(self):
         sorted_times = list(self.times)
@@ -69,9 +84,9 @@ class TimePeriod(Printable):
 def validate_command(command_str):
     """
     Validates a CRON entry (* * * * * /bin/command)
-    and returns its parsed components
+    and returns its components TimePeriod and Printable objects
     """
-    regex = r"^(.+?)\s+(.+?)\s+(.+?)\s+(.+?)\s+(.+?)\s(.+)$"
+    regex = r"^\s*(\S+?)\s+(\S+?)\s+(\S+?)\s+(\S+?)\s+(\S+?)\s+(?=\S)(.+)$"
     m = re.match(regex, command_str)
     if m:
         minute  = TimePeriod(title='minute', intervals=m.group(1), lower_bound=0, upper_bound=59)
@@ -81,15 +96,22 @@ def validate_command(command_str):
         weekday = TimePeriod(title='day of week', intervals=m.group(5), lower_bound=0, upper_bound=6)
         command = Printable(title='command', contents=m.group(6))
         return minute, hour, day, month, weekday, command
+    else:
+        raise ValueError("Invalid crontab entry")
 
 def main(args):
     args_without_filename = args[1:]
     cron_command = args_without_filename[0]
+    if not args:
+        exit(1)
 
-    minute, hour, day, month, weekday, command = validate_command(cron_command)
-    print(minute)
-    print(hour)
-    print(day)
-    print(month)
-    print(weekday)
-    print(command)
+    try:
+        minute, hour, day, month, weekday, command = validate_command(cron_command)
+        print(minute)
+        print(hour)
+        print(day)
+        print(month)
+        print(weekday)
+        print(command)
+    except ValueError as e:
+        print(e)
