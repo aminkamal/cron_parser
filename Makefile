@@ -1,6 +1,15 @@
-.PHONY = all run
+.PHONY = all wheel install_wheel test coverage
 
-all: run
+all: wheel
 
-run:
-	@python3 -m cron_parser
+install:
+	pip3 install .
+
+wheel:
+	python3 -m build
+
+install_wheel: wheel
+	pip3 install dist/cron_parser*.whl
+
+test:
+	python3 -m unittest

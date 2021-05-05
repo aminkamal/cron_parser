@@ -1,6 +1,7 @@
 import unittest
 from cron_parser.parser import TimePeriod, validate_command
 
+
 class TestStringMethods(unittest.TestCase):
 
     def test_valid_cron_commands(self):
@@ -49,6 +50,7 @@ class TestStringMethods(unittest.TestCase):
         self.assertEqual(month.get_contents(), [m for m in range(1, 13)])
         self.assertEqual(weekday.get_contents(), [1, 4, 5, 6])
         self.assertEqual(command.get_contents(), "/bin/bash /path/to/script.sh")
+
 
 if __name__ == '__main__':
     unittest.main()

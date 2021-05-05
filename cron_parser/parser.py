@@ -2,6 +2,7 @@ import re
 
 TITLE_COL_MAX = 14
 
+
 class Printable:
     def __init__(self, title, contents=""):
         self.title = title
@@ -22,6 +23,7 @@ class Printable:
 
     def __str__(self):
         return self.get_title() + self.contents
+
 
 class TimePeriod(Printable):
     def __init__(self, title, intervals, lower_bound, upper_bound):
@@ -69,7 +71,7 @@ class TimePeriod(Printable):
         if value < self.lower_bound or value > self.upper_bound:
             raise ValueError(f"Value out of range: {value}. Allowed range: [{self.lower_bound}, {self.upper_bound}]")
         self.times.add(value)
-    
+
     def get_contents(self):
         sorted_times = list(self.times)
         sorted_times.sort()
@@ -80,6 +82,7 @@ class TimePeriod(Printable):
         sorted_times.sort()
         title = self.get_title()
         return title + " ".join([str(element) for element in sorted_times])
+
 
 def validate_command(command_str):
     """
@@ -99,10 +102,17 @@ def validate_command(command_str):
     else:
         raise ValueError("Invalid crontab entry")
 
+
+def print_usage():
+    print('Usage: cron_parser "minutes hours days months weekdays /command/to/run"')
+    print('Example: cron_parser "*/5 0 1,15 * 1-6 /bin/bash /path/to/script.sh"')
+
+
 def main(args):
     args_without_filename = args[1:]
     cron_command = args_without_filename[0]
     if not args:
+        print_usage()
         exit(1)
 
     try:
@@ -115,3 +125,5 @@ def main(args):
         print(command)
     except ValueError as e:
         print(e)
+        print_usage()
+        exit(1)
