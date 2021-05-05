@@ -2,9 +2,27 @@ import re
 
 TITLE_COL_MAX = 14
 
-class TimePeriod:
-    def __init__(self, title, intervals, lower_bound, upper_bound):
+class Printable:
+    def __init__(self, title, contents=""):
         self.title = title
+        self.contents = contents
+
+    def get_title(self):
+        title = self.title
+        if len(title) > TITLE_COL_MAX:
+            return title[:TITLE_COL_MAX]
+        else:
+            i = 0
+            for i in range(TITLE_COL_MAX - len(title)):
+                title += " "
+        return title
+
+    def __str__(self):
+        return self.get_title() + self.contents
+
+class TimePeriod(Printable):
+    def __init__(self, title, intervals, lower_bound, upper_bound):
+        super().__init__(title)
         self.times = set()
         self.lower_bound = lower_bound
         self.upper_bound = upper_bound
@@ -41,15 +59,6 @@ class TimePeriod:
     def add_predefined_value(self, value):
         self.times.add(value)
 
-    def get_title(self):
-        title = self.title
-        if len(title) > TITLE_COL_MAX:
-            return title[:TITLE_COL_MAX]
-        else:
-            i = 0
-            for i in range(TITLE_COL_MAX - len(title)):
-                title += " "
-        return title
 
     def __str__(self):
         sorted_times = list(self.times)
@@ -62,7 +71,7 @@ def validate_command(command_str):
     Validates a CRON entry (* * * * * /bin/command)
     and returns its parsed components
     """
-    regex = r"^(.+)\s+(.+)\s+(.+)\s+(.+)\s+(.+)\s(.+)$"
+    regex = r"^(.+?)\s+(.+?)\s+(.+?)\s+(.+?)\s+(.+?)\s(.+)$"
     m = re.match(regex, command_str)
     if m:
         minute  = TimePeriod(title='minute', intervals=m.group(1), lower_bound=0, upper_bound=59)
@@ -70,7 +79,7 @@ def validate_command(command_str):
         day     = TimePeriod(title='day of month', intervals=m.group(3), lower_bound=1, upper_bound=31)
         month   = TimePeriod(title='month', intervals=m.group(4), lower_bound=1, upper_bound=12)
         weekday = TimePeriod(title='day of week', intervals=m.group(5), lower_bound=0, upper_bound=6)
-        command = m.group(6)
+        command = Printable(title='command', contents=m.group(6))
         return minute, hour, day, month, weekday, command
 
 def main(args):
