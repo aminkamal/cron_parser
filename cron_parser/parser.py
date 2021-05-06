@@ -110,10 +110,10 @@ def print_usage():
 
 def main(args):
     args_without_filename = args[1:]
-    cron_command = args_without_filename[0]
-    if not args:
+    if not args_without_filename:
         print_usage()
         exit(1)
+    cron_command = args_without_filename[0]
 
     try:
         minute, hour, day, month, weekday, command = validate_command(cron_command)
